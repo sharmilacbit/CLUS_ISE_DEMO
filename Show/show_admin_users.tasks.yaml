@@ -1,0 +1,65 @@
+---
+#
+# - Show the Admin Users
+#
+# - name: Show All Admin Users Play
+#   hosts: ise_deployment
+#   vars_files:
+#     - credentials.yaml
+#   gather_facts: no
+#   tasks:
+
+  - name: Get all Admin Users
+    cisco.ise.admin_user_info:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+    register: result
+
+  # - name: Result
+  #   ansible.builtin.debug: var=result
+
+
+  - name: Get Admin Users by id
+    loop: "{{ result.ise_response }}"
+    cisco.ise.admin_user_info:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      id: "{{ item.id }}"
+    register: result
+
+  # - name: Result
+  #   ansible.builtin.debug: var=result
+
+
+  - name: Remove link attribute from all resources in loop
+    when: result and result != []
+    loop: "{{ result.results }}"
+    vars: 
+      resources: []
+    ansible.builtin.set_fact:
+      resources: '{{ resources + [ item.ise_response | dict2items | rejectattr("key", "equalto", "link") | list | items2dict ] }}'
+
+
+  - name: Dump AdminUsers (YAML)
+    when: resources and resources != []
+    delegate_to: localhost
+    changed_when: false
+    ansible.builtin.shell: "echo '{{ resources | to_nice_yaml(indent=2) }}' > /dev/tty"
+
+
+  - name: Summary of AdminUsers by Name (YAML)
+    when: resources and resources != []
+    delegate_to: localhost
+    changed_when: false
+    vars:
+      query: "[*].name"
+    ansible.builtin.shell: "echo '{{ resources
+    | community.general.json_query(query) 
+    | to_nice_yaml(indent=2) }}' > /dev/tty"
+
+
+...

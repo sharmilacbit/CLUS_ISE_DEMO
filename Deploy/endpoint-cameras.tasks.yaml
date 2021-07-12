@@ -1,0 +1,56 @@
+---
+#
+# Create Endpoints
+#
+
+  #
+  # Loop over multiple endpoints using vars or vars_files
+  #
+  - name: Cameras 
+    loop: "{{ macs }}"
+    vars:
+      endpoint_type: Camera
+      description: Surveillance Camera
+      groupId: 3a88eec0-8c00-11e6-996c-525400b48521  # Trendnet-Device
+      macs:
+        - D8-EB-97-85-F8-C9
+        - D8-EB-97-A2-51-2C
+        - D8-EB-97-80-52-DB
+    cisco.ise.endpoint:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      mac: "{{ item }}"
+      name: "{{ endpoint_type }}"
+      description: "{{ description | default() }}"
+      staticGroupAssignment: true
+      groupId: "{{ groupId }}"
+      # ▼▼▼ optional attributes ▼▼▼
+      # staticProfileAssignment: true
+      # profileId: 0a9c6890-8c00-11e6-996c-525400b48521
+      # customAttributes:
+      #   customAttributes:
+      #     Created: "{{ created | default(now()) }}"
+      #     Expired: 
+
+
+  #
+  # Add by Task
+  #
+  # - name: Trendnet-Camera
+  #   cisco.ise.endpoint:
+  #     ise_hostname: "{{ inventory_hostname }}"
+  #     ise_username: "{{ ise_username }}"
+  #     ise_password: "{{ ise_password }}"
+  #     ise_verify: "{{ ise_verify }}"
+  #     state: present
+  #     mac: D8-EB-97-34-02-23
+  #     name: Trendnet-Camera
+  #     description: Trendnet-Camera
+  #     staticGroupAssignment: true
+  #     groupId: aa13bb40-8bff-11e6-996c-525400b48521
+
+
+...

@@ -1,0 +1,74 @@
+---
+#
+# Tasks to Enable ISE APIs. 
+#
+# To use in a playbook :
+#   import_tasks: ISE_Enable_APIs.tasks.yaml
+#   or
+#   include_tasks: ISE_Enable_APIs.tasks.yaml
+#
+
+  # use ISE_set_facts.tasks.yaml if version not defined!
+
+
+  - name: Enable ISE OpenAPIs (ISE 3.1+)
+    # when: 
+    delegate_to: localhost
+    ansible.builtin.uri:
+      url: "https://{{ inventory_hostname }}/admin/API/apiService/update"
+      method: POST
+      url_username: "{{ ise_username }}"
+      url_password: "{{ ise_password }}"
+      force_basic_auth: yes
+      body: '{ "papIsEnabled":true, "psnsIsEnabled":true }'
+      status_code: 200,500
+      body_format: json
+      validate_certs: "{{ ise_verify }}"
+      return_content: true
+    register: response
+
+
+  - name: ISE OpenAPIs Enabled Status
+    when: (response.status == 200) or (response.content.find('already enabled') != -1)
+    ansible.builtin.debug: 
+      msg : "✅ ISE OpenAPIs Enabled"
+
+
+  - name: ISE OpenAPIs Disabled Status
+    when: (response.status != 200) and (response.status != 500)
+    ansible.builtin.debug: 
+      msg : "❌ ISE OpenAPIs Disabled"
+
+
+  - name: Enable ISE ERS APIs
+    delegate_to: localhost
+    ansible.builtin.uri:
+      url: "https://{{ inventory_hostname }}/admin/API/NetworkAccessConfig/ERS"
+      method: PUT
+      url_username: "{{ ise_username }}"
+      url_password: "{{ ise_password }}"
+      force_basic_auth: yes
+      headers:
+        Accept: application/xml
+        Content-Type: application/xml
+      body: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><ersConfig>
+    <id>1</id><isCSRFCheck>false</isCSRFCheck><isPapEnabled>true</isPapEnabled><isPsnsEnabled>true</isPsnsEnabled></ersConfig>'
+      status_code: 200
+      validate_certs: "{{ ise_verify }}"
+      return_content: true
+    register: response
+
+
+  - name: ISE ERS Enabled Status
+    when: response.status == 200
+    ansible.builtin.debug: 
+      msg : "✅ ISE ERS APIs Enabled"
+
+
+  - name: ISE ERS Disabled Status
+    when: response.status != 200
+    ansible.builtin.debug: 
+      msg : "❌ ISE ERS APIs Disabled"
+
+
+...

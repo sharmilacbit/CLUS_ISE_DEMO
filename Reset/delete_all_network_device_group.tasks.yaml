@@ -1,0 +1,81 @@
+---
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# Be careful - this will delete all of your network device groups!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+# - name: Delete ALL Network Device Groups
+#   hosts: ise_deployment
+#   vars_files:
+#     - credentials.yaml
+#   vars_prompt:
+#     - name: delete_confirmation
+#       prompt: 🛑 You want to DELETE ALL Network Device Groups?!
+#       private: no
+#       # confirm: yes
+#   gather_facts: no
+#   tasks:
+
+
+  - name: Get all NetworkDeviceGroups
+    cisco.ise.network_device_group_info:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+    register: result
+
+  # - name: debug 
+  #   ansible.builtin.debug: var=results
+
+
+  - name: List Network Device Groups by Name (YAML)
+    when: result and result != []
+    delegate_to: localhost
+    ansible.builtin.shell: 'echo "{{ result.ise_response
+    | community.general.json_query(query) 
+    | to_nice_yaml(indent=2) }}" > /dev/tty'
+    changed_when: false
+    vars:
+      query: "[*].name"
+
+
+  #
+  # ⟁ The default/system Network Device Groups cannot be deleted!
+  #
+  - name: Remove Default Network Device Groups from list to delete
+    when: result and result != []
+    vars:
+      SYSTEM_DEFINED_NDGs: [
+        Device Type#All Device Types,
+        IPSEC#Is IPSEC Device,
+        IPSEC#Is IPSEC Device#No,
+        IPSEC#Is IPSEC Device#Yes,
+        Location#All Locations,
+      ]
+    ansible.builtin.set_fact:
+      resources: "{{ result.ise_response | rejectattr('name','in', SYSTEM_DEFINED_NDGs) }}"
+
+  # - name: debug resources
+  #   ansible.builtin.debug: var=resources
+
+  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  # 🐞 ISE <= 3.1.0.451 REST API bug currently returns a 500 for this:
+  #   "title" : "Failed to delete Network Device Group. ",
+  #   "type" : "ERROR",
+  #   "code" : "CRUD operation exception"
+  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  - name: Delete All NetworkDeviceGroups
+    when: resources and resources != []
+    # when: delete_confirmation.lower() in ['confirm','si','t','true','y','yes']
+    loop: "{{ resources }}"
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: absent
+      id: "{{ item.id }}"
+    register: result
+
+
+...

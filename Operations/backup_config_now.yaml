@@ -1,0 +1,102 @@
+---
+#
+# Ansible Play Template
+#
+- name: Create Backup Play
+  hosts: ise_deployment
+  vars_files:
+    - credentials.yaml
+  gather_facts: no
+  tasks:
+
+
+  - name: Backup Configuration Now
+    vars:
+      repository_name: SFTP
+
+  - name: Create SFTP_Box
+    cisco.ise.repository:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: SFTP_Box
+      serverName: cisco.box.com
+      protocol: SFTP
+      path: /
+      userName: thomas
+      password: 
+      enablePki: true
+    register: result
+
+
+  # - name: Result
+  #   ansible.builtin.debug: var=result
+
+
+  # - name: Backup Started!
+  #   when: results.ise_response.response.id is defined
+  #   ansible.builtin.debug: msg="✅ Backup Started!"
+
+
+  # - name: Backup Failed!
+  #   when: results.ise_response.response.id is not defined
+  #   ansible.builtin.debug: msg="❌ Backup Failes!"
+
+
+  # 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 
+  # cisco.ise.tasks is not yet implemented!
+  # It maps to https://ciscoisesdk.readthedocs.io/en/latest/api/api.html#tasks
+  # 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 
+  # - name: 🐞 cisco.ise.tasks is not yet implemented
+  #   ansible.builtin.debug: msg="🐞 cisco.ise.tasks is not yet implemented 🐞"
+
+
+  # - name: Backup Cancel
+  #   cisco.ise.backup_cancel:
+  #     ise_hostname: "{{inventory_hostname}}"
+  #     ise_username: "{{ise_username}}"
+  #     ise_password: "{{ise_password}}"
+  #     ise_verify: "{{ise_verify}}"
+
+  # - name: Get all Backup Last Status
+  #   cisco.ise.backup_last_status_info:
+  #     ise_hostname: "{{inventory_hostname}}"
+  #     ise_username: "{{ise_username}}"
+  #     ise_password: "{{ise_password}}"
+  #     ise_verify: "{{ise_verify}}"
+  #   register: result
+
+  # - name: Create backup_restore
+  #   cisco.ise.backup_restore:
+  #     ise_hostname: "{{inventory_hostname}}"
+  #     ise_username: "{{ise_username}}"
+  #     ise_password: "{{ise_password}}"
+  #     ise_verify: "{{ise_verify}}"
+  #     backupEncryptionKey: "{{ backup_encryption_key }}"
+  #     repositoryName: "{{ repository_name }}"
+  #     restoreFile: my_restore
+  #     restoreIncludeAdeos: true
+
+  # - name: Create backup_schedule_config
+  #   cisco.ise.backup_schedule_config:
+  #     ise_hostname: "{{inventory_hostname}}"
+  #     ise_username: "{{ise_username}}"
+  #     ise_password: "{{ise_password}}"
+  #     ise_verify: "{{ise_verify}}"
+  #     repositoryName: "{{ repository_name }}"
+  #     backupDescription: my_backup
+  #     backupEncryptionKey: "{{ backup_encryption_key }}"
+  #     backupName: my_backup
+  #     startDate: 2021-01-01     # YYYY-MM-DD
+  #     endDate: 2021-12-31       # YYYY-MM-DD; optional with ONE_TIME frequency
+  #     frequency: WEEKLY         # [ ONE_TIME, DAILY, WEEKLY, MONTHLY ]
+  #     time: 11:00 PM            # Example: 12:00 AM
+  #     # 🐞 ▼▼▼ these attributes are missing from docs ▼▼▼
+  #     # status: ENABLE         # [ ENABLE, DISABLE ]
+  #     # monthDay: 11            # 1-28; when frequency is MONTHLY
+  #     # weekDay: "SUN"          # [ MON, TUE, WED, THU, FRI, SAT, SUN ]
+
+
+...

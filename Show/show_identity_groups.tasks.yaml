@@ -1,0 +1,99 @@
+---
+#
+# ISE Identity Groups
+#
+# - name: Show Identity Groups Play
+#   hosts: ise_deployment
+#   vars_files:
+#     - credentials.yaml
+#   gather_facts: no
+#   tasks:
+
+  - name: Get All Identity Groups
+    cisco.ise.identity_group_info:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+    register: results
+
+
+  - name: Results
+    ansible.builtin.debug: var=results
+
+  #
+  # 🛑  Must get-by-id
+  #    There is a get-by-name option but fails with "(default)" in the names!
+  #
+  - name: Get identity groups by ID
+    loop: "{{ results.ise_response }}"
+    cisco.ise.identity_group_info:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      id: "{{ item.id }}"
+    register: details
+
+  - name: Debug details
+    ansible.builtin.debug: var=details
+
+  # 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞
+  # The details output has `ise_response: null` and `item` contains data!
+  # 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞
+  # {
+  #     "ansible_loop_var": "item",
+  #     "changed": false,
+  #     "failed": false,
+  #     "ise_response": null,
+  #     "item": {
+  #         "description": "Default Employee User Group",
+  #         "id": "a1740510-8c01-11e6-996c-525400b48521",
+  #         "link": {
+  #             "href": "https://52.53.157.158/ers/config/identitygroup/a1740510-8c01-11e6-996c-525400b48521",
+  #             "rel": "self",
+  #             "type": "application/json"
+  #         },
+  #         "name": "Employee"
+  #     },
+  #     "result": ""
+  # },
+
+  - name: Remove link attribute from all resources
+    loop: "{{ details.results }}"
+    vars: 
+      resources: []
+    ansible.builtin.set_fact:
+      resources: '{{ resources + [ item.item | dict2items | rejectattr("key", "equalto", "link") | list | items2dict ] }}'
+
+
+  # - name: Debug resources
+  #   ansible.builtin.debug: var=resources
+
+
+  - name: Dump Identity Groups (YAML)
+    when: resources != []
+    delegate_to: localhost
+    changed_when: false
+    ansible.builtin.shell: "echo '{{ resources
+    | to_nice_yaml(indent=2) }}' > /dev/tty"
+
+
+  - name: Concatenate ID + Name into a string
+    when: resources != []
+    loop: "{{ results.ise_response }}"
+    vars: 
+      id_names: []
+    ansible.builtin.set_fact:
+      id_names: "{{ id_names + [ item.id + ' ' + item.name  ] }}"
+
+
+  - name: Summary of Identity Groups by ID/Name (YAML)
+    when: id_names != []
+    delegate_to: localhost
+    changed_when: false
+    ansible.builtin.shell: "echo '{{ id_names
+    | to_nice_yaml(indent=2) }}' > /dev/tty"
+
+
+...

@@ -1,0 +1,116 @@
+---
+#
+# Tasks for cisco.ise.internal_user
+#
+# ⟁ cisco.ise.internal_user is not yet idempotent because we cannot compare
+# the previous password to detect if it was changed or not for privacy and
+# security reasons.
+#
+
+
+  - name: Internal User Accounts 
+    loop: "{{ users }}"
+    vars:
+      users:
+        - username: 1homas
+          password: C1sco12345
+          description: ""
+          identityGroups: a1740510-8c01-11e6-996c-525400b48521  # Employee
+        - username: employee
+          password: C1sco12345
+          description: ""
+          identityGroups: a1740510-8c01-11e6-996c-525400b48521  # Employee
+        - username: radius-probe
+          password: C1sco12345
+          description: "RADIUS Test Probe"
+          identityGroups: a1740510-8c01-11e6-996c-525400b48521  # Employee
+    cisco.ise.internal_user:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: "{{ item.username }}"
+      password: "{{ item.password }}"
+      changePassword: "{{ item.changePassword | default(false) }}"
+      enabled: "{{ item.enabled | default(true) }}"
+      expiryDateEnabled: "{{ item.expiryDateEnabled | default(false) }}"
+      passwordIDStore: Internal Users
+      identityGroups: "{{ item.identityGroups }}"
+
+
+  # - name: internal_user 1homas
+  #   cisco.ise.internal_user:
+  #     ise_hostname: "{{ inventory_hostname }}"
+  #     ise_username: "{{ ise_username }}"
+  #     ise_password: "{{ ise_password }}"
+  #     ise_verify: "{{ ise_verify }}"
+  #     state: present
+  #     name: thomas
+  #     password: "{{ default_password }}"
+  #     changePassword: false
+  #     enabled: true
+  #     expiryDateEnabled: false
+  #     passwordIDStore: Internal Users
+  #     identityGroups: a1740510-8c01-11e6-996c-525400b48521  # Employee
+
+
+  # - name: internal_user employee
+  #   cisco.ise.internal_user:
+  #     ise_hostname: "{{ inventory_hostname }}"
+  #     ise_username: "{{ ise_username }}"
+  #     ise_password: "{{ ise_password }}"
+  #     ise_verify: "{{ ise_verify }}"
+  #     state: present
+  #     name: employee
+  #     password: "{{ default_password }}"
+  #     changePassword: false
+  #     enabled: true
+  #     expiryDateEnabled: false
+  #     passwordIDStore: Internal Users
+  #     identityGroups: a1740510-8c01-11e6-996c-525400b48521  # Employee
+
+
+  # - name: internal_user radius-probe
+  #   cisco.ise.internal_user:
+  #     ise_hostname: "{{ inventory_hostname }}"
+  #     ise_username: "{{ ise_username }}"
+  #     ise_password: "{{ ise_password }}"
+  #     ise_verify: "{{ ise_verify }}"
+  #     state: present
+  #     name: radius-probe
+  #     password: "{{ default_password }}"
+  #     changePassword: false
+  #     enabled: true
+  #     expiryDateEnabled: false
+  #     passwordIDStore: Internal Users
+  #     identityGroups: a1740510-8c01-11e6-996c-525400b48521  # Employee
+
+
+  #----------------------------------------------------------------------------
+  # cisco.ise.internal_user Template
+  #----------------------------------------------------------------------------
+  # - name: internal_user 
+  #   cisco.ise.internal_user:
+  #     ise_hostname: "{{ inventory_hostname }}"
+  #     ise_username: "{{ ise_username }}"
+  #     ise_password: "{{ ise_password }}"
+  #     ise_verify: "{{ ise_verify }}"
+  #     state: present
+  #     name: '{{ item.name }}'
+  #     description: '{{ item.description | default() }}'
+  #     enabled: '{{ item.enabled | default(true) }}'
+  #     password: '{{ item.password | default(default_password) }}'
+  #     # ▼▼▼ optional attributes ▼▼▼
+  #     # changePassword: '{{ item.changePassword | default(false) }}'
+  #     # passwordIDStore: '{{ item.idStore | default(Internal Users) }}'
+  #     # identityGroups: a1740510-8c01-11e6-996c-525400b48521
+  #     # customAttributes:
+  #     #   Created: 
+  #     #   Expired: 
+  #   register: results
+
+  # - name: Results
+  #   ansible.builtin.debug: var=results
+
+...

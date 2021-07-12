@@ -1,0 +1,88 @@
+---
+#
+# List all Network Device Group names and configurations in YAML lists.
+#
+# - name: List All Network Device Groups by Name (YAML)
+#   hosts: ise_deployment
+#   vars_files:
+#     - credentials.yaml
+#   gather_facts: no
+#   tasks:
+
+
+  - name: Get All Network Device Groups (id/name/description)
+    cisco.ise.network_device_group_info:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+    register: result
+
+
+  # - name: Results
+  #   ansible.builtin.debug: var=results
+
+
+  - name: List Network Device Groups by Name (YAML)
+    when: result and result != []
+    delegate_to: localhost
+    changed_when: false
+    vars:
+      query: "[*].name"
+    ansible.builtin.shell: 'echo "{{ result.ise_response
+    | community.general.json_query(query) 
+    | to_nice_yaml(indent=2) }}" > /dev/tty'
+
+
+  - name: Get Network Device Groups by ID
+    loop: "{{ result.ise_response }}"
+    cisco.ise.network_device_group_info:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      id: "{{ item.id }}"
+    register: details
+
+
+  # - name: Debug
+  #   ansible.builtin.debug: var=group_details
+
+
+  - name: Remove link attribute
+    when: details and details != []
+    loop: "{{ details.results }}"
+    vars: 
+      resources: []
+    ansible.builtin.set_fact:
+      resources: '{{ resources + [ item.ise_response | dict2items | rejectattr("key", "equalto", "link") | list | items2dict ] }}'
+
+  #
+  # This works but we are going to try to dump from a template!
+  #
+  # - name: Dump Network Device Groups (YAML)
+  #   when: resources and resources != []
+  #   delegate_to: localhost
+  #   changed_when: false
+  #   ansible.builtin.shell: "echo '{{ resources | to_nice_yaml(indent=2) }}' > /dev/tty"
+
+
+  #
+  # ⟁ the data structure must be named the same as in the template!
+  #
+  # - name: Rename Variable for Template
+  #   ansible.builtin.set_fact:
+  #     networkdevicegroups: "{{ resources }}"
+
+  # - name: Debug
+  #   ansible.builtin.debug: var=networkdevicegroups
+
+  # - name: Apply Template
+  #   delegate_to: localhost
+  #   ansible.builtin.template:
+  #     src: ../Templates/networkdevicegroup.j2
+  #     dest: ../Generated/networkdevicegroups.yaml
+  #   register: result
+
+
+...

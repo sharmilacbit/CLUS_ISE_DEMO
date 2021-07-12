@@ -1,0 +1,149 @@
+---
+#
+# Create Active Directory Tasks
+#
+
+
+  - name: Create Active Directory Join Point - "{{ ad_domain_name }}"
+    cisco.ise.active_directory:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: "{{ ad_domain_name }}"
+      description: ""
+      domain: "{{ ad_domain_name }}"
+      #
+      # 🐞 cisco.ise.active_directory:<=0.0.7 is missing both
+      #    - enableDomainAllowedList for >= ISE 3.0 Patch 2 
+      #    - enableDomainWhiteList   for <  ISE 3.0 Patch 2 
+      #
+      # enableDomainAllowedList: true
+      adAttributes:
+        attributes: []
+      adScopesNames: Default_Scope
+      adgroups:
+        groups:
+        - name: dcloud.cisco.com/Users/Domain Guests
+          sid: S-1-5-21-3064548688-3193819538-1298560677-514
+        - name: dcloud.cisco.com/Users/device-admins
+          sid: S-1-5-21-3064548688-3193819538-1298560677-1276
+        - name: dcloud.cisco.com/Users/Domain Computers
+          sid: S-1-5-21-3064548688-3193819538-1298560677-515
+        - name: dcloud.cisco.com/Builtin/SECURITY_ADMINS
+          sid: S-1-5-21-3064548688-3193819538-1298560677-1316
+        - name: dcloud.cisco.com/Builtin/ITAdmins
+          sid: S-1-5-21-3064548688-3193819538-1298560677-1259
+        - name: dcloud.cisco.com/Builtin/HELPDESK
+          sid: S-1-5-21-3064548688-3193819538-1298560677-1317
+        - name: dcloud.cisco.com/Users/Domain Users
+          sid: S-1-5-21-3064548688-3193819538-1298560677-513
+      advancedSettings:
+        agingTime: 5
+        authProtectionType: WIRELESS
+        country: co
+        department: department
+        email: mail
+        enableCallbackForDialinClient: false
+        enableDialinPermissionCheck: false
+        enableFailedAuthProtection: false
+        enableMachineAccess: true
+        enableMachineAuth: true
+        enablePassChange: true
+        enableRewrites: false
+        failedAuthThreshold: 5
+        firstName: givenName
+        identityNotInAdBehaviour: SEARCH_JOINED_FOREST
+        jobTitle: title
+        lastName: sn
+        locality: l
+        organizationalUnit: company
+        plaintextAuth: false
+        # ⟁ Rewrite rules must be quoted; YAML strings cannot start with `[`
+        rewriteRules:
+        - rewriteMatch: host/[HOSTNAME].[DOMAIN]
+          rewriteResult: host/[HOSTNAME].[DOMAIN]
+          rowId: 0
+        - rewriteMatch: host/[HOSTNAME]
+          rewriteResult: host/[HOSTNAME]
+          rowId: 1
+        - rewriteMatch: '[DOMAIN]\[IDENTITY]'
+          rewriteResult: '[DOMAIN]\[IDENTITY]'
+          rowId: 2
+        - rewriteMatch: '[IDENTITY]@[DOMAIN]'
+          rewriteResult: '[IDENTITY]@[DOMAIN]'
+          rowId: 3
+        - rewriteMatch: '[IDENTITY]'
+          rewriteResult: '[IDENTITY]'
+          rowId: 4
+        schema: ACTIVE_DIRECTORY
+        stateOrProvince: st
+        streetAddress: streetAddress
+        telephone: telephoneNumber
+        unreachableDomainsBehaviour: PROCEED
+    register: result
+
+
+  - name: Get Active Directory by Name
+    cisco.ise.active_directory_info:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      name: "{{ ad_domain_name }}"
+    register: result
+
+  # - name: Result
+  #   ansible.builtin.debug: var=result.ise_response.id 
+
+
+
+  #
+  # ⟁ AD join will fail if already joined (not idempotent)
+  #
+  - name: Attempt AD Join
+    block:
+
+    - name: 👷 Workaround - Join AD using the joinAllNodes REST call
+      delegate_to: localhost
+      ansible.builtin.uri:
+        url: "https://{{ inventory_hostname }}/ers/config/activedirectory/{{ result.ise_response.id }}/joinAllNodes"
+        method: PUT
+        url_username: "{{ ise_username }}"
+        url_password: "{{ ise_password }}"
+        force_basic_auth: yes
+        headers:
+          Accept: application/json
+          Content-Type: application/json
+        body: '
+{
+    "OperationAdditionalData" : {
+        "additionalData" : [ 
+            {
+                "name" : "username",
+                "value" : "{{ad_admin_username}}"
+            },
+            {
+                "name" : "password",
+                "value" : "{{ad_admin_password}}"
+            }
+        ]
+    }
+}'
+        status_code: 204
+        body_format: json
+        validate_certs: "{{ ise_verify }}"
+        return_content: true
+      register: result
+
+    rescue:
+      - name: Already Joined
+        ansible.builtin.debug:
+          msg: 'Already joined to AD!'
+
+  # - name: Result
+  #   ansible.builtin.debug: var=result
+
+
+...

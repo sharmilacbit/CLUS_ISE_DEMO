@@ -1,0 +1,30 @@
+---
+#
+# Wait for asynchronous job to end
+# From:
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/async_status_module.html
+#
+- hosts: ise_deployment
+  vars_files:   # assumes same directory as playbook
+    - credentials.yaml
+  gather_facts: no
+  tasks:
+
+  - name: Set Task ID
+    ansible.builtin.set_fact: 
+      task_id: 16331850-e215-11eb-ad8e-da61eb66e24a"
+
+  # 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 
+  # cisco.ise.task_service is not yet implemented!
+  # 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 🐞 
+
+  # - name: Wait for asynchronous job to End
+  #   ansible.builtin.async_status:
+  #     jid: '{{ task_id }}'   # Job or task identifier
+  #   register: job_result
+  #   until: job_result.finished
+  #   retries: 100
+  #   delay: 30
+
+
+...

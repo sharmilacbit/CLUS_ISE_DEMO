@@ -1,0 +1,18 @@
+---
+#
+# Show Tasks
+#
+- name: List All Network Device Groups by Name (YAML)
+  hosts: ise_deployment
+  vars_files:
+    - credentials.yaml
+  gather_facts: no
+  tasks:
+
+
+  - name: Show Tasks
+    ansible.builtin.include_tasks: show_ndgs.tasks.yaml
+  - name: Show Tasks
+    ansible.builtin.include_tasks: show_internal_users.tasks.yaml
+
+...

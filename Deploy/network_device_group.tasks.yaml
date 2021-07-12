@@ -1,0 +1,187 @@
+---
+#
+# Create Network Device Group Tasks
+#
+
+# - hosts: ise_deployment
+#   vars_files:
+#     - credentials.yaml
+#   gather_facts: no
+#   tasks:
+
+  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  # 🛑 Do not try to create or delete these default Network Device Groups!
+  #   - Device Type#All Device Types
+  #   - IPSEC#Is IPSEC Device
+  #   - IPSEC#Is IPSEC Device#No
+  #   - IPSEC#Is IPSEC Device#Yes
+  #   - Location#All Locations
+  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+  #----------------------------------------------------------------------------
+  # Department
+  #----------------------------------------------------------------------------
+
+  - name: Create Department#Department
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Department#Department
+      description: All Departments
+      othername: Department
+
+
+  - name: Create Department#Department#IT
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Department#Department#IT
+      description: IT
+      othername: Department
+
+
+  - name: Create Department#Department#Product
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Department#Department#Product
+      description: Product
+      othername: Department
+
+
+  - name: Create Department#Department#Services
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Department#Department#Services
+      description: Services
+      othername: Department
+
+
+  - name: Create Department#Department#Sales
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Department#Department#Sales
+      description: Sales
+      othername: Department
+
+
+  #----------------------------------------------------------------------------
+  # Device Types
+  #----------------------------------------------------------------------------
+
+  - name: Create Device Type#All Device Types#Wireless
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Device Type#All Device Types#Wireless
+      description: Wireless
+      othername: Device Type
+
+  - name: Create Device Type#All Device Types#Wireless#WLC
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Device Type#All Device Types#Wireless#WLC
+      description: Cisco Wireless LAN Controller (WLC)
+      othername: Device Type
+
+  - name: Create Device Type#All Device Types#Wireless#MR46
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Device Type#All Device Types#Wireless#MR46
+      description: Cisco Meraki MR46 AP
+      othername: Device Type
+
+  - name: Create Device Type#All Device Types#Switches#3560CX
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Device Type#All Device Types#Switches#3560CX
+      description: Cisco Catalyst 3560CX
+      othername: Device Type
+
+  - name: Create Device Type#All Device Types#Switches#MS120
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Device Type#All Device Types#Switches#MS120
+      description: Cisco Meraki MS120
+      othername: Device Type
+
+
+
+  #----------------------------------------------------------------------------
+  # Location
+  #----------------------------------------------------------------------------
+
+
+
+  - name: Create Location#All Locations#AMER
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Location#All Locations#AMER
+      description: AMER
+      othername: Location
+
+  - name: Create Location#All Locations#AMER#HBC
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Location#All Locations#AMER#HBC
+      description: Huntington Beach, CA, US, AMER
+      othername: Location
+
+  - name: Create Location#All Locations#AMER#SJC
+    cisco.ise.network_device_group:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: present
+      name: Location#All Locations#AMER#SJC
+      description: San Jose, CA, US, AMER
+      othername: Location
+
+
+...

@@ -1,0 +1,66 @@
+---
+#
+# Reset ISE
+#
+#------------------------------------------------------------------------------
+# 💡 See Re-using Ansible artifacts @ 
+# https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse.html
+# to understand include_tasks (dynamic) vs import_tasks (static)
+# - You can pass variables to imports and includes.
+# - Ansible pre-processes imported files and *before* running tasks!
+# - The primary advantage of using include_* statements is looping
+#------------------------------------------------------------------------------
+- name: Reset ISE Play
+  hosts: ise_deployment
+  vars_files:
+    - credentials.yaml
+  gather_facts: no
+  tasks:
+
+
+  # - name: Set Facts for ISE (version, patch, etc.) ✅
+  #   ansible.builtin.import_tasks: ise_set_facts.tasks.yaml
+
+  # - name: Enable ISE APIs ✅
+  #   ansible.builtin.import_tasks: ise_enable_apis.tasks.yaml
+
+
+  # - name: Delete Trusted CA Certificates
+  #   ansible.builtin.import_tasks: Add_ISE_CA_Certificates.yaml
+
+  # - name: Delete ISE Certificate
+  #   ansible.builtin.import_tasks: Add_ISE_Certificate.yaml
+
+  # - name: Delete Active Directory with Groups
+  #   ansible.builtin.import_tasks: Join_AD_dcloud.cisco.com.yaml
+  #   when: inventory_hostname == "ise.securitydemo.net"
+
+  # - name: Delete @vanillaise.onmicrosoft.com
+  #   ansible.builtin.import_tasks: Join_vanillaise_Azure_AD_Store.yaml
+
+
+  - name: Delete Repositories ✅
+    ansible.builtin.include_tasks: delete_all_repository.tasks.yaml
+
+  - name: Delete Internal Users ✅
+    ansible.builtin.include_tasks: delete_all_internal_user.tasks.yaml
+
+  - name: Delete Endpoints ✅
+    ansible.builtin.include_tasks: delete_all_endpoints.tasks.yaml
+
+  - name: Delete Network Devices ✅
+    ansible.builtin.include_tasks: delete_all_network_device.tasks.yaml
+
+  # 🐞 Delete networkdevicegroup in ISE ERS API does not work!
+  # - name: Delete Network Device Groups ✅
+  #   ansible.builtin.include_tasks: delete_all_network_device_group.tasks.yaml
+
+
+  # - name: Delete Policy Authorization Profiles
+  #   ansible.builtin.import_tasks: Delete_Policy_Authorization_Profiles.yaml
+
+  # - name: Delete Azure AD Authorization Rule
+  #   ansible.builtin.import_tasks: Delete_Azure_AD_Authorization_Rule.yaml
+
+
+...

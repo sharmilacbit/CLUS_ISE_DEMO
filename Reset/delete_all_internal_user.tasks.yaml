@@ -1,0 +1,52 @@
+---
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# Be careful - this will delete all of your Internal Users!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+# - name: Delete ALL Internal Users
+#   hosts: ise_deployment
+#   vars_files:
+#     - credentials.yaml
+#   vars_prompt:
+#     - name: delete_confirmation
+#       prompt: 🛑 You want to DELETE ALL Internal Users [yes/no]?
+#       private: no
+#       # confirm: yes
+#   gather_facts: no
+#   tasks:
+
+
+  - name: Get all Internal Users
+    cisco.ise.internal_user_info:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+    register: result
+
+
+  - name: List Internal Users by Name (YAML)
+    when: result and result != []
+    ansible.builtin.shell: 'echo "{{ result.ise_response
+    | community.general.json_query(query) 
+    | to_nice_yaml(indent=2) }}" > /dev/tty'
+    delegate_to: localhost
+    changed_when: false
+    vars:
+      query: "[*].name"
+
+
+  - name: Delete all Internal Users
+    when: result and result != []
+    # when: delete_confirmation.lower() in ['confirm','si','t','true','y','yes']
+    loop: "{{ result.ise_response }}"
+    cisco.ise.internal_user:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_verify: "{{ ise_verify }}"
+      state: absent
+      id: "{{ item.id }}"
+
+
+...

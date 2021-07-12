@@ -1,0 +1,38 @@
+---
+#
+# Backup Config Tasks
+#
+# - name: Create Backup Play
+#   hosts: ise_deployment
+#   vars_files:
+#     - credentials.yaml
+#   gather_facts: no
+#   tasks:
+
+  - name: Backup Configuration Now
+    cisco.ise.backup_config:
+      ise_hostname: "{{inventory_hostname}}"
+      ise_username: "{{ise_username}}"
+      ise_password: "{{ise_password}}"
+      ise_verify: "{{ise_verify}}"
+      backupEncryptionKey: "{{ backup_encryption_key }}"
+      backupName: my_first_backup
+      repositoryName: FTP_dCloud
+    register: result
+
+
+  # - name: Result
+  #   ansible.builtin.debug: var=result
+
+
+  - name: Backup Started!
+    when: result.ise_response.response.id is defined
+    ansible.builtin.debug: msg="✅ Backup Started!"
+
+
+  - name: Backup Failed!
+    when: result.ise_response.response.id is not defined
+    ansible.builtin.debug: msg="❌ Backup Failed!"
+
+
+...
