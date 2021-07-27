@@ -2,6 +2,10 @@
 
 ISE 3.1 will be available as a native Amazon Machine Image (AMI) and customers want to use automation tools to provision their deployments whether on-premises, using cloud providers, or hybrid. This session will demonstrate how you can use the new **[`cisco.ise`](https://ciscoise.github.io/ansible-ise/main/html/plugins/index.html)** Ansible modules to generate configurations from existing deployments and begin to incorporate them into their daily policy management and lifecycle orchestration.
 
+## Presentation and Demos
+
+![Cisco Identity Services Engine (ISE) in AWS with Ansible Automation](https://www.youtube.com/watch?v=H1TQnNT2Rkk)
+Watch the TechFieldDay presentation and demo from the recording in YouTube.
 
 ## Quick Start
 
