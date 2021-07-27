@@ -4,9 +4,9 @@ ISE 3.1 will be available as a native Amazon Machine Image (AMI) and customers w
 
 ## Presentation and Demos
 
-<iframe width="1905" height="881" src="https://www.youtube.com/embed/H1TQnNT2Rkk" title="Cisco Identity Services Engine (ISE) in AWS with Ansible Automation" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-Watch the [TechFieldDay presentation and demo](https://www.youtube.com/watch?v=H1TQnNT2Rkk) from the recording in YouTube.
+[![Cisco Identity Services Engine (ISE) in AWS with Ansible Automation](https://img.youtube.com/vi/H1TQnNT2Rkk/0.jpg)](https://www.youtube.com/watch?v=H1TQnNT2Rkk "Cisco Identity Services Engine (ISE) in AWS with Ansible Automation")
 
+Watch the TechFieldDay presentation and demo from the recording in YouTube.
 
 ## Quick Start
 
