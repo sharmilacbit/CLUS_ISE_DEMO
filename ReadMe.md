@@ -33,7 +33,7 @@ ansible-galaxy collection install community.general
 source source_me.sh
 ```
 
-If you have any problems installing Python or Ansible, see **[](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
+If you have any problems installing Python or Ansible, see the official **[Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)** guide.
 
 
 Clone this repository to your local lab or sandbox environment :  
