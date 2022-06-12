@@ -9,7 +9,7 @@
 
   - name: Network Device - WLC
     vars:
-      device_name: TFD-WLC
+      device_name: CLUS-WLC
       description: Cisco vWLC
       ipv4: 198.19.11.10
       profile_name: Cisco
@@ -54,9 +54,9 @@
     register: result
 
 
-  - name: Network Device - TFD-MR46-1
+  - name: Network Device - CLUS-MR46-1
     vars:
-      device_name: TFD-MR46-1
+      device_name: CLUS-MR46-1
       description: Cisco Meraki MR46
       # ipv4: 172.112.212.4
       ipv4: 10.80.60.151
@@ -102,9 +102,9 @@
     register: result
 
 
-  - name: Network Device - TFD-3560CX-1
+  - name: Network Device - CLUS-3560CX-1
     vars:
-      device_name: TFD-3560CX-1
+      device_name: CLUS-3560CX-1
       description: Cisco 3560CX
       # ipv4: 172.112.212.4
       ipv4: 10.80.60.152
@@ -150,9 +150,9 @@
     register: result
 
 
-  - name: Network Device - TFD-MS120-1
+  - name: Network Device - CLUS-MS120-1
     vars:
-      device_name: TFD-MS120-1
+      device_name: CLUS-MS120-1
       description: Cisco 3560CX
       # ipv4: 172.112.212.4
       ipv4: 10.80.60.153

@@ -1,0 +1,279 @@
+---
+#
+# Deploy_ISE_Policy_Tasks.yaml
+#
+
+- name: Deploy ISE (from collections of tasks)
+  hosts: ise_deployment
+  vars:
+      ise_login: &ise_login
+        ise_username: admin
+        ise_password: ISEisC00L
+        ise_hostname: "{{ inventory_hostname }}"
+        ise_verify: false
+  vars_files:
+    - credentials.yaml
+    # vars_files:   # must use import_tasks with vars_files!
+    # - credentials_restidstore_vanillaise.yaml
+  gather_facts: no
+  environment:
+     GIT_SSL_NO_VERIFY: true
+  tasks:
+
+  #
+  # ⟁ Must verify APIs are enabled before gathering facts!
+  #
+  - name: Enable ISE APIs
+    ansible.builtin.import_tasks: ise_enable_apis.tasks.yaml
+
+  #
+  # ⟁ The REST API for getting the version sometimes fails.  8-(
+  #
+  - name: Set Facts for ISE (version, patch, etc.)
+    ansible.builtin.import_tasks: ise_set_facts.tasks.yaml
+  
+#################################
+
+# - name: Create Policy Sets
+#   hosts: ise_deployment
+#   vars_files:
+#     - credentials.yaml
+#   gather_facts: no
+#   tasks:
+
+# Add Policy sets
+
+  - name: Create or update a network access conditions
+    cisco.ise.network_access_conditions:
+      <<: *ise_login 
+      state: present
+      conditionType: "LibraryConditionAttributes"
+      isNegate: False
+      name: "EST"
+      dictionaryName: "Network Access"
+      attributeName: "Device IP Address"
+      operator: "equals"
+      attributeValue: "127.0.0.1"
+    register: condition
+
+  - name: Create EST policy set
+    cisco.ise.network_access_policy_set:
+      <<: *ise_login 
+      state: present
+      condition:
+        conditionType: "ConditionReference"
+        isNegate: False
+        id: "{{ condition.ise_response.id }}"
+      default: False
+      description: ""
+      isProxy: False
+      rank: 0
+      serviceName: "Default Network Access"
+      name: "EST"
+    register: result
+
+
+  - name: Create or update a network access conditions
+    cisco.ise.network_access_conditions:
+      <<: *ise_login 
+      state: present
+      conditionType: "LibraryConditionAttributes"
+      isNegate: False
+      name: "VPN_Employee"
+      dictionaryName: "Cisco-VPN3000"
+      attributeName: "CVPN3000/ASA/PIX7x-Tunnel-Group-Name"
+      operator: "equals"
+      attributeValue: "Employee"
+    register: condition
+
+  - name: Create Employee VPN policy set
+    cisco.ise.network_access_policy_set:
+      <<: *ise_login 
+      state: present
+      condition:
+        conditionType: "ConditionReference"
+        isNegate: False
+        id: "{{ condition.ise_response.id }}"
+      default: False
+      description: ""
+      isProxy: False
+      rank: 0
+      serviceName: "Default Network Access"
+      name: "Employee VPN"
+    register: result
+
+
+  - name: Create or update a network access conditions
+    cisco.ise.network_access_conditions:
+      <<: *ise_login 
+      state: present
+      conditionType: "LibraryConditionAttributes"
+      isNegate: False
+      name: "VPN_Contractor"
+      dictionaryName: "Cisco-VPN3000"
+      attributeName: "CVPN3000/ASA/PIX7x-Tunnel-Group-Name"
+      operator: "equals"
+      attributeValue: "Contractor"
+    register: condition
+
+  - name: Create Contractor VPN policy set
+    cisco.ise.network_access_policy_set:
+      <<: *ise_login 
+      state: present
+      condition:
+        conditionType: "ConditionReference"
+        isNegate: False
+        id: "{{ condition.ise_response.id }}"
+      default: False
+      description: ""
+      isProxy: False
+      rank: 0
+      serviceName: "Default Network Access"
+      name: "Contractor VPN"
+    register: result
+
+
+  - name: Create Wired DOT1X policy set
+    cisco.ise.network_access_policy_set:
+      <<: *ise_login 
+      state: present
+      condition:
+        conditionType: "ConditionReference"
+        isNegate: False
+        id: "{{ condition.ise_response.id }}"
+      default: False
+      description: ""
+      isProxy: False
+      rank: 0
+      serviceName: "Default Network Access"
+      name: "Wired DOT1X"
+    register: result
+
+
+  - name: Create Wired MAB policy set
+    cisco.ise.network_access_policy_set:
+      <<: *ise_login 
+      state: present
+      condition:
+        conditionType: "ConditionReference"
+        isNegate: False
+        id: "{{ condition.ise_response.id }}"
+      default: False
+      description: ""
+      isProxy: False
+      rank: 0
+      serviceName: "Default Network Access"
+      name: "Wired MAB"
+    register: result
+
+
+  - name: Create or update a network access conditions
+    cisco.ise.network_access_conditions:
+      <<: *ise_login 
+      state: present
+      conditionType: "LibraryConditionAttributes"
+      isNegate: False
+      name: "SSID_PSK"
+      dictionaryName: "Radius"
+      attributeName: "Called-Station-ID"
+      operator: "endsWith"
+      attributeValue: "PSK"
+    register: condition
+
+  - name: Create PSK SSID policy set
+    cisco.ise.network_access_policy_set:
+      <<: *ise_login 
+      state: present
+      condition:
+        conditionType: "ConditionReference"
+        isNegate: False
+        id: "{{ condition.ise_response.id }}"
+      default: False
+      description: ""
+      isProxy: False
+      rank: 0
+      serviceName: "Default Network Access"
+      name: "PSK SSID"
+    register: result
+
+
+  - name: Create or update a network access conditions
+    cisco.ise.network_access_conditions:
+      <<: *ise_login 
+      state: present
+      conditionType: "LibraryConditionAttributes"
+      isNegate: False
+      name: "SSID_OPEN"
+      dictionaryName: "Radius"
+      attributeName: "Called-Station-ID"
+      operator: "endsWith"
+      attributeValue: "OPEN"
+    register: condition
+
+  - name: Create OPEN SSID policy set
+    cisco.ise.network_access_policy_set:
+      <<: *ise_login 
+      state: present
+      condition:
+        conditionType: "ConditionReference"
+        isNegate: False
+        id: "{{ condition.ise_response.id }}"
+      default: False
+      description: ""
+      isProxy: False
+      rank: 0
+      serviceName: "Default Network Access"
+      name: "OPEN SSID"
+    register: result
+    
+
+  - name: Create or update a network access conditions
+    cisco.ise.network_access_conditions:
+      <<: *ise_login 
+      state: present
+      conditionType: "LibraryConditionAttributes"
+      isNegate: False
+      name: "SSID_SECURE"
+      dictionaryName: "Radius"
+      attributeName: "Called-Station-ID"
+      operator: "endsWith"
+      attributeValue: "SECURE"
+    register: condition
+
+  - name: Create SECURE SSID policy set
+    cisco.ise.network_access_policy_set:
+      <<: *ise_login 
+      state: present
+      condition:
+        conditionType: "ConditionReference"
+        isNegate: False
+        id: "{{ condition.ise_response.id }}"
+      default: False
+      description: ""
+      isProxy: False
+      rank: 0
+      serviceName: "Default Network Access"
+      name: "SECURE SSID"
+    register: result
+
+  - name: Get all network policy set
+    cisco.ise.network_access_policy_set_info:
+      <<: *ise_login 
+    register: all_policies
+####################################
+  #
+  # ⟁ internal_users is NOT idempotent: Cannot compare the user's password.
+  #
+  # If you want to use Identity Group Custom Attributes, they must be added
+  # manually in the ISE GUI before adding them via API:
+  #   Administration > Identity Mgmt > Settings > User Custom Attributes
+  #
+  #   Created | Long
+  #   Expired | Long
+  #   Department | String
+  #   Sponsor | String
+  #   Authorization | String
+  # 
+ 
+
+...

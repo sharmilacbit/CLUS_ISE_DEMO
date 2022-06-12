@@ -1,0 +1,212 @@
+---
+#
+# Deploy_ISE_Tasks.yaml
+#
+
+- name: Deploy ISE (from collections of tasks)
+  hosts: ise_deployment
+  vars:
+    ise_login: &ise_login
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_verify: false
+  vars_files:
+    - credentials.yaml
+    # vars_files:   # must use import_tasks with vars_files!
+    # - credentials_restidstore_vanillaise.yaml
+  gather_facts: no
+  environment:
+     GIT_SSL_NO_VERIFY: true
+  tasks:
+
+# - name: Deploy ISE (from collections of tasks)
+#   hosts: ise_deployment
+#   vars:
+#       ise_login: &ise_login
+#       ise_username: "{{ ise_username }}"
+#       ise_password: "{{ ise_password }}"
+#       ise_hostname: "{{ inventory_hostname }}"
+#       ise_verify: false
+#   vars_files:
+#     - credentials.yaml
+#     # vars_files:   # must use import_tasks with vars_files!
+#     # - credentials_restidstore_vanillaise.yaml
+#   gather_facts: no
+#   environment:
+#      GIT_SSL_NO_VERIFY: true
+#   tasks:
+
+  #
+  # ⟁ Must verify APIs are enabled before gathering facts!
+  #
+  - name: Enable ISE APIs
+    ansible.builtin.import_tasks: ise_enable_apis.tasks.yaml
+
+  #
+  # ⟁ The REST API for getting the version sometimes fails.  8-(
+  #
+  - name: Set Facts for ISE (version, patch, etc.)
+    ansible.builtin.import_tasks: ise_set_facts.tasks.yaml
+
+# Import Let's Encrypt issued certificate for Guest portal
+
+  - name: Import Let's Encrypt Root CA certificate into ISE node
+    cisco.ise.trusted_certificate_import:
+      <<: *ise_login 
+      data: "{{ lookup('file', item) }}"
+      description: "LETS ENCRYPT ROOT"
+      name: "1 LETS Root"
+      allowBasicConstraintCAFalse: false
+      allowOutOfDateCert: true
+      allowSHA1Certificates: true
+      trustForCertificateBasedAdminAuth: false
+      trustForCiscoServicesAuth: false
+      trustForClientAuth: false
+      trustForIseAuth: true
+      validateCertificateExtensions: false
+    with_fileglob:
+      - "../pki/root.cer"
+
+
+  - name: Import Let's Encrypt Intermediate CA certificate into ISE node
+    cisco.ise.trusted_certificate_import:
+      <<: *ise_login 
+      data: "{{ lookup('file', item) }}"
+      description: "LETS ENCRYPT INTERMEDIATE"
+      name: "LETS Intermediate"
+      allowBasicConstraintCAFalse: true
+      allowOutOfDateCert: false
+      allowSHA1Certificates: true
+      trustForCertificateBasedAdminAuth: true
+      trustForCiscoServicesAuth: true
+      trustForClientAuth: true
+      trustForIseAuth: true
+      validateCertificateExtensions: true
+    with_fileglob:
+      - "../pki/fullchain.cer"
+
+# Add AD
+
+  - name: Create active directory cisco.com
+    cisco.ise.active_directory:
+      <<: *ise_login 
+      # ise_debug: "{{ise_debug}}"
+      state: present
+      name: cisco.com
+      description: ''
+      domain: cisco.com
+    register: result
+
+  - name: Add groups and attributes
+    cisco.ise.active_directory:
+      <<: *ise_login 
+      # ise_debug: "{{ise_debug}}"
+      state: present
+      name: cisco.com
+      description: ''
+      domain: cisco.com
+      # id: result.ise_response.id
+      adgroups:
+        groups:
+        - name: cisco.com/Users/Employees
+          sid: S-1-5-21-2506421944-838844734-1746255245-1125
+        - name: cisco.com/Users/Domain Users
+          sid: S-1-5-21-2506421944-838844734-1746255245-513
+        - name: cisco.com/Users/Domain Computers
+          sid: S-1-5-21-2506421944-838844734-1746255245-515
+        - name: cisco.com/Users/Domain Admins
+          sid: S-1-5-21-2506421944-838844734-1746255245-512
+        - name: cisco.com/Users/Contractors
+          sid: S-1-5-21-2506421944-838844734-1746255245-1124
+      adAttributes:
+        attributes:
+        - defaultValue: ''
+          internalName: cn
+          name: cn
+          type: STRING
+        - defaultValue: ''
+          internalName: userPrincipalName
+          name: userPrincipalName
+          type: STRING
+        - defaultValue: ''
+          internalName: badPwdCount
+          name: badPwdCount
+          type: STRING
+    register: result
+
+
+  - name: Attempt AD Join
+    block:
+
+    - name: Join all nodes to AD domain cisco.com
+      delegate_to: localhost
+      ansible.builtin.uri:
+        url: "https://{{ ise_hostname }}/ers/config/activedirectory/{{ result.ise_response.id }}/joinAllNodes"
+        method: PUT
+        url_username: "{{ ise_username }}"
+        url_password: "{{ ise_password }}"
+        force_basic_auth: yes
+        headers:
+          Accept: application/json
+          Content-Type: application/json
+        body: '
+          {
+              "OperationAdditionalData" : {
+                  "additionalData" : [ 
+                      {
+                          "name" : "username",
+                          "value" : "{{ad_admin_username}}"
+                      },
+                      {
+                          "name" : "password",
+                          "value" : "{{ad_admin_password}}"
+                      }
+                  ]
+              }
+          }'
+        status_code: 204
+        body_format: json
+        validate_certs: "{{ ise_verify }}"
+        return_content: true
+      register: result
+
+    rescue:
+      - name: Already Joined
+        ansible.builtin.debug:
+          msg: 'Already joined to AD!'
+
+
+# Add DISK as repository
+
+  - name: Create Disk Repository
+    vars: 
+      name: DiskRepo
+      serverName: "{{ inventory_hostname }}"
+      protocol: DISK
+      path: /
+      userName: "{{ ise_username }}"
+      password: "{{ ise_password }}"
+      enablePki: false
+    ansible.builtin.include_tasks: repository.tasks.yaml
+
+  - name: Backup Configuration Now
+    cisco.ise.backup_config:
+        ise_hostname: "{{ inventory_hostname }}"
+        ise_username: "{{ise_username}}"
+        ise_password: "{{ise_password}}"
+        ise_verify: "{{ise_verify}}"
+        backupEncryptionKey: "{{ backup_encryption_key }}"
+        backupName: my_first_backupTest
+        repositoryName: DiskRepo
+    register: result
+
+  # - name: Add Surveillance Cameras
+  #   ansible.builtin.import_tasks: endpoint-cameras.tasks.yaml
+
+  # - name: Add IP Phones
+  #   ansible.builtin.import_tasks: endpoint-ip_phones.tasks.yaml
+
+  # - name: Add Printers
+  #   ansible.builtin.import_tasks: endpoint-printers.tasks.yaml
+...

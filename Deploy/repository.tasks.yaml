@@ -8,14 +8,6 @@
 
 
   - name: Create Repository "{{ name }}"
-    # vars: 
-    #   name: FTP
-    #   serverName: 1.2.3.4
-    #   protocol: FTP
-    #   path: /
-    #   userName: ise
-    #   password: C1sco12345
-    #   enablePki: false
     cisco.ise.repository:
       ise_hostname: "{{ inventory_hostname }}"
       ise_username: "{{ ise_username }}"

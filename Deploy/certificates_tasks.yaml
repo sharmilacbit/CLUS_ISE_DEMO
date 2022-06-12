@@ -1,0 +1,53 @@
+---
+#
+# Add Certificates
+#
+
+# - hosts: ise_deployment
+#   vars_files:
+#     - credentials.yaml
+#   gather_facts: no
+#   tasks:
+
+# Import Let's Encrypt issued certificate for Guest portal
+
+  - name: Add Certificates
+    cisco.ise.trusted_certificate_import:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      data: "{{ lookup('file', item) }}"
+      description: "LETS ENCRYPT ROOT"
+      name: "1 LETS Root"
+      ise_verify: false
+      allowBasicConstraintCAFalse: false
+      allowOutOfDateCert: true
+      allowSHA1Certificates: true
+      trustForCertificateBasedAdminAuth: false
+      trustForCiscoServicesAuth: false
+      trustForClientAuth: false
+      trustForIseAuth: true
+      validateCertificateExtensions: false
+    with_fileglob:
+      - "../pki/root.cer"
+
+
+  - name: Import Let's Encrypt Intermediate CA certificate into ISE node
+    cisco.ise.trusted_certificate_import:
+      ise_hostname: "{{ inventory_hostname }}"
+      ise_username: "{{ ise_username }}"
+      ise_password: "{{ ise_password }}"
+      data: "{{ lookup('file', item) }}"
+      ise_verify: false
+      description: "LETS ENCRYPT INTERMEDIATE"
+      name: "LETS Intermediate"
+      allowBasicConstraintCAFalse: true
+      allowOutOfDateCert: false
+      allowSHA1Certificates: true
+      trustForCertificateBasedAdminAuth: true
+      trustForCiscoServicesAuth: true
+      trustForClientAuth: true
+      trustForIseAuth: true
+      validateCertificateExtensions: true
+    with_fileglob:
+      - "../pki/fullchain.cer"

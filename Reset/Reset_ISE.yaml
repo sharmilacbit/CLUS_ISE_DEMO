@@ -12,6 +12,12 @@
 #------------------------------------------------------------------------------
 - name: Reset ISE Play
   hosts: ise_deployment
+  vars:
+      ise_login: &ise_login
+        ise_username: admin
+        ise_password: ISEisC00L
+        ise_hostname: "{{ inventory_hostname }}"
+        ise_verify: false
   vars_files:
     - credentials.yaml
   gather_facts: no
@@ -38,15 +44,14 @@
   # - name: Delete @vanillaise.onmicrosoft.com
   #   ansible.builtin.import_tasks: Join_vanillaise_Azure_AD_Store.yaml
 
-
-  - name: Delete Repositories ✅
-    ansible.builtin.include_tasks: delete_all_repository.tasks.yaml
-
   - name: Delete Internal Users ✅
     ansible.builtin.include_tasks: delete_all_internal_user.tasks.yaml
 
   - name: Delete Endpoints ✅
     ansible.builtin.include_tasks: delete_all_endpoints.tasks.yaml
+
+  - name: Delete Network Device Groups ✅
+    ansible.builtin.include_tasks: delete_all_network_group.tasks.yaml
 
   - name: Delete Network Devices ✅
     ansible.builtin.include_tasks: delete_all_network_device.tasks.yaml

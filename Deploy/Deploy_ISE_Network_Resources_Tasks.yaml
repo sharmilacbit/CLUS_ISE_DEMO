@@ -1,0 +1,178 @@
+---
+#
+# Deploy_ISE_Tasks.yaml
+#
+
+- name: Deploy ISE (from collections of tasks)
+  hosts: ise_deployment
+  vars:
+      ise_login: &ise_login
+        ise_username: admin
+        ise_password: ISEisC00L
+        ise_hostname: "{{ inventory_hostname }}"
+        ise_verify: false
+  vars_files:
+    - credentials.yaml
+    # vars_files:   # must use import_tasks with vars_files!
+    # - credentials_restidstore_vanillaise.yaml
+  gather_facts: no
+  tasks:
+
+  #
+  # ⟁ Must verify APIs are enabled before gathering facts!
+  #
+  - name: Enable ISE APIs
+    ansible.builtin.import_tasks: ise_enable_apis.tasks.yaml
+
+  #
+  # ⟁ The REST API for getting the version sometimes fails.  8-(
+  #
+  - name: Set Facts for ISE (version, patch, etc.)
+    ansible.builtin.import_tasks: ise_set_facts.tasks.yaml
+
+## Add Network Device Groups
+
+  - name: Create Network Device Groups
+    ansible.builtin.import_tasks: network_device_group.tasks.yaml
+
+## Add Network Devices 
+
+  - name: Add Network Devices
+    ansible.builtin.import_tasks: network_device.tasks.yaml
+
+# Add Endpoint Groups
+
+  - name: Add Endpoint Groups
+    ansible.builtin.import_tasks: endpoint_groups.tasks.yaml
+
+# Add Endpoints
+
+  - name: Add Surveillance Cameras
+    ansible.builtin.import_tasks: endpoint-cameras.tasks.yaml
+
+  - name: Add IP Phones
+    ansible.builtin.import_tasks: endpoint-ip_phones.tasks.yaml
+
+  - name: Add Printers
+    ansible.builtin.import_tasks: endpoint-printers.tasks.yaml
+
+# Add Identity Groups
+
+  - name: Create Sales group
+    cisco.ise.identity_group:
+      <<: *ise_login 
+      state: present
+      name: "Sales"
+      description: "Sales"
+      parent: "NAC Group:NAC:IdentityGroups:User Identity Groups"
+    register: identity_group_sales
+
+  - name: Create Engineering group
+    cisco.ise.identity_group:
+      <<: *ise_login 
+      state: present
+      name: "Engineering"
+      description: "Engineering"
+      parent: "NAC Group:NAC:IdentityGroups:User Identity Groups"
+    register: identity_group_engineering
+
+  - name: Create Marketing group
+    cisco.ise.identity_group:
+      <<: *ise_login 
+      state: present
+      name: "Marketing"
+      description: "Marketing"
+      parent: "NAC Group:NAC:IdentityGroups:User Identity Groups"
+    register: identity_group_marketing
+
+  - name: Read Sales group
+    cisco.ise.identity_group:
+      <<: *ise_login 
+      state: present
+      name: "Sales"
+      description: "Sales"
+      parent: "NAC Group:NAC:IdentityGroups:User Identity Groups"
+    register: identity_group_sales
+
+  - name: Read Engineering group
+    cisco.ise.identity_group:
+      <<: *ise_login 
+      state: present
+      name: "Engineering"
+      description: "Engineering"
+      parent: "NAC Group:NAC:IdentityGroups:User Identity Groups"
+    register: identity_group_engineering
+
+  - name: Read Marketing group
+    cisco.ise.identity_group:
+      <<: *ise_login 
+      state: present
+      name: "Marketing"
+      description: "Marketing"
+      parent: "NAC Group:NAC:IdentityGroups:User Identity Groups"
+    register: identity_group_marketing
+
+# Create Internal Users
+
+  - name: Create user Sharmila
+    cisco.ise.internal_user:
+      <<: *ise_login  
+      state: present
+      name: Sharmila
+      password: "C1sco12345"
+      firstName: "Sharmila"
+      lastName: "Everywhere"
+      email: "everywhere@cisco.com"
+      changePassword: false
+      enabled: true
+      expiryDateEnabled: false
+      passwordIDStore: Internal Users
+      identityGroups: "{{ identity_group_sales.ise_response.id }}"
+    register: result
+
+  - name: Create user Tahir
+    cisco.ise.internal_user:
+      <<: *ise_login  
+      state: present
+      name: Tahir
+      password: "C1sco12345"
+      firstName: "Tahir"
+      lastName: "Anywhere"
+      email: "anywhere@cisco.com"
+      changePassword: false
+      enabled: true
+      expiryDateEnabled: false
+      passwordIDStore: Internal Users
+      identityGroups: "{{ identity_group_marketing.ise_response.id }}"
+    register: result
+
+  - name: Create user Hosuk
+    cisco.ise.internal_user:
+      <<: *ise_login  
+      state: present
+      name: Hosuk
+      password: "C1sco12345"
+      changePassword: false
+      enabled: true
+      expiryDateEnabled: false
+      passwordIDStore: Internal Users
+      identityGroups: "{{ identity_group_engineering.ise_response.id }}"
+    register: result
+
+  - name: Create user Thomas
+    cisco.ise.internal_user:
+      <<: *ise_login  
+      state: present
+      name: Thomas
+      password: "C1sco12345"
+      changePassword: false
+      enabled: true
+      expiryDateEnabled: false
+      passwordIDStore: Internal Users
+      identityGroups: "{{ identity_group_marketing.ise_response.id }}"
+    register: result
+
+
+
+
+...
